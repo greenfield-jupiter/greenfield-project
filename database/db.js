@@ -1,12 +1,10 @@
 const Sequelize = require('sequelize');
-const rgx = new RegExp(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
-const match = process.env.DATABASE_URL ? process.env.DATABASE_URL.match(rgx) : 'postgres://wairrcwaikkuob:b6f7a04b36dc888549bcedd0c99f7cec9c18eb3e83bda91f24bd31fbe60eba50@ec2-50-16-199-246.compute-1.amazonaws.com:5432/d10sjl0jdmpqhu'.match(rgx);
 
-sequelize = new Sequelize(match[5], match[1], match[2], {
+const sequelize = new Sequelize(process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD, {
     dialect:  'postgres',
     protocol: 'postgres',
-    port:     match[4],
-    host:     match[3],
+    port:     process.env.DB_PORT,
+    host:     process.env.DB_HOST,
     logging: false,
     dialectOptions: {
         ssl: true
@@ -41,7 +39,7 @@ const Pokemon = sequelize.define('pokerito', {
     type: Sequelize.INTEGER,
     primaryKey: true,
     unique: true
-  },  
+  },
   name: Sequelize.STRING,
   types: Sequelize.ARRAY(Sequelize.TEXT),
   baseHealth: Sequelize.INTEGER,
@@ -54,9 +52,23 @@ const Pokemon = sequelize.define('pokerito', {
     timestamps: false
 });
 
+const WinLoss = sequelize.define('winlossito', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    unique: true
+  },
+  gameDate: Sequelize.DATE,
+  winner_id: Sequelize.INTEGER,
+  winner_pokemon: Sequelize.ARRAY(Sequelize.INTEGER),
+  loser_id: Sequelize.INTEGER,
+  loser_pokemon: Sequelize.ARRAY(Sequelize.INTEGER)
+});
 
+// Create the tables in the DB
 Users.sync();
 Pokemon.sync();
+WinLoss.sync();
 
 // Users
 //   .findAll()
@@ -74,7 +86,7 @@ const saveUser = (username, password, email) =>  {
     })
     .then(userFoundOrUsernameExists => {
       if (userFoundOrUsernameExists) {
-        return userFoundOrUsernameExists === 'Username Already Exists'  ? 
+        return userFoundOrUsernameExists === 'Username Already Exists'  ?
         'Username Already Exists':
         'Email Already Exists';
       }
@@ -91,30 +103,32 @@ const savePokemon = (pokemonObj) => {
   .catch((err) => {
     console.log('POKEMON SAVED ERROR: ', err);
   });
-}
+};
 
-// Users
-
-//   .findAll()
-//   .then(users => {
-//     console.log("FOUND USERS")
-//     console.log(users);
-//   })
-
-
+const saveWinLoss = (gameObj) => {
+  console.log('IN SAVE WINLOSS!');
+  WinLoss.create(gameObj).then((data) => {
+    console.log('WINLOSS DATA: ', data);
+    console.log('WINLOSS SAVED TO DB!');
+  })
+  .catch((err) => {
+    console.log('WIN/LOSS SAVE ERROR: ', err);
+  });
+};
 
 module.exports = {
   connecttion: sequelize,
   saveUser: saveUser,
+  saveWinLoss: saveWinLoss,
   Users: Users,
   Pokemon: Pokemon
-}
+};
 
 // POSTGRES WITHOUT SEQUELIZE
 // const { Client } = require('pg');
 
 // const client = new Client({
-//   connectionString: process.env.DATABASE_URL || 'postgres://wairrcwaikkuob:b6f7a04b36dc888549bcedd0c99f7cec9c18eb3e83bda91f24bd31fbe60eba50@ec2-50-16-199-246.compute-1.amazonaws.com:5432/d10sjl0jdmpqhu',
+//   connectionString: process.env.DATABASE_URL || ' ****REDACTED**** ',
 //   ssl: true,
 // });
 
