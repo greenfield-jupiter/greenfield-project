@@ -78,3 +78,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 ## Documentation
 
 In addition to documentation here, you will find extensive documentation within the application's files.
+
+## <3
